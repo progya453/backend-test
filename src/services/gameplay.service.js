@@ -9,6 +9,12 @@ const Topic = require('../models/Topic.model');
 const Question = require('../models/Question.model');
 const { redisClient } = require('../config/redis');
 
+let UserProgress;
+try {
+  UserProgress = require('../models/UserProgress.model');
+} catch (e) {
+  console.error("⚠️ WARNING: UserProgress model is missing. Create it to track progress.");
+}
 class GameplayService {
   
   /**
@@ -153,56 +159,120 @@ class GameplayService {
     return Question.find({ topic_id: topicId })
       .select('-ai_prediction -created_at -updated_at');
   }
+      
 
-
-
-
-
-  /**
-   * 4. SUBMIT ANSWER (The Feedback Loop)
-   * Handles scoring, streaks, and activity logging.
-   */
   async submitAnswer(userId, questionId, isCorrect, timeTaken) {
-    // A. Fire & Forget Activity Log (Async Write)
-    // We don't await this because the user shouldn't wait for logging
+    console.log(`[Submit] Processing User: ${userId} | Q: ${questionId} | Correct: ${isCorrect}`);
+
+    // 1. VALIDATION
+    if (!mongoose.Types.ObjectId.isValid(questionId)) {
+      throw new Error(`Invalid Question ID`);
+    }
+
+    // 2. FETCH QUESTION
+    const question = await Question.findById(questionId);
+    
+    // ERROR CHECK: This is where it was failing before
+    if (!question) {
+        console.error(`[Submit] ERROR: Question not found in DB for ID: ${questionId}`);
+        return { correct: isCorrect, xp: 0, error: "Question not found" };
+    }
+
+    // 3. EXTRACT CONTEXT (Use embedded data from Question model)
+    const topicId = question.topic_id;
+    // Fallback to embedded names if lookups fail
+    const subjectName = question.subject?.name || 'General';
+    const chapterName = question.chapter?.name || 'General'; 
+    const topicName = question.topic?.name || 'General';
+
+    // We still fetch Topic to get Chapter ID for the progress ring link
+    const topic = await Topic.findById(topicId);
+    const chapterId = topic ? topic.chapter_id : null;
+
+    // 4. LOG ACTIVITY
     UserActivity.create({
       user_id: userId,
       question_id: questionId,
-      // We can fetch topic_tag from question cache if needed, 
-      // or frontend sends it. For now, default or look up.
-      topic_tag: 'General', 
+      topic_tag: topicName,
       is_correct: isCorrect,
-      selected_option_id: isCorrect ? 'correct' : 'wrong', // Simplified
-      time_taken: timeTaken,
+      selected_option_id: isCorrect ? 'correct' : 'wrong',
+      time_taken: timeTaken || 5,
       timestamp: new Date()
-    }).catch(err => console.error('Activity Log Error:', err));
+    }).catch(e => console.error("[Submit] Log Failed:", e.message));
 
-    // B. Update User Profile (Gamification)
+    // 5. UPDATE PROGRESS (Only if Correct)
+    let updates = null;
+    let xpGain = 0;
+
     if (isCorrect) {
-      const xpGain = 10;
-      
-      // Atomic Update: Increment XP and Update Last Active
+      xpGain = 10;
+
+      // A. Update XP
       await UserProfile.updateOne(
         { _id: userId },
         { 
           $inc: { "gamification.total_xp": xpGain },
           $set: { "gamification.last_active_date": new Date() }
-          // Streak logic would go here (complex date diff checking)
         }
-      );
+      ).catch(e => console.error("[Submit] XP Error:", e.message));
 
-      // C. Update Global Leaderboard (Redis Sorted Set)
-      // Score = Total XP
-      const user = await UserProfile.findById(userId).select('gamification');
-      if (user) {
-        await redisClient.zadd('leaderboard:global', user.gamification.total_xp, userId);
+      // B. Update Progress Rings
+      if (UserProgress) {
+        try {
+          console.log("[Submit] Updating Progress Rings...");
+          
+          // 1. Topic Progress
+          const topicProg = await this.incrementProgress(userId, topicId, 'topic');
+          
+          // 2. Chapter Progress (Use ID if available, else Name key)
+          let chapterProg = { percentage: 0 };
+          const chapKey = chapterId || chapterName;
+          chapterProg = await this.incrementProgress(userId, chapKey, 'chapter');
+
+          // 3. Subject Progress (Use Name key)
+          const subjectProg = await this.incrementProgress(userId, subjectName, 'subject');
+
+          // C. Construct Response
+          updates = {
+            topic: { id: topicId, percent: topicProg.percentage },
+            chapter: { id: chapterId, percent: chapterProg.percentage }, // ID for Path Mapping
+            subject: { name: subjectName, percent: subjectProg.percentage } // Name for Dashboard
+          };
+          
+          console.log("[Submit] Progress Updated:", JSON.stringify(updates));
+
+        } catch (err) {
+          console.error("[Submit] Ring Update Failed:", err.message);
+        }
       }
-
-      return { correct: true, xp: xpGain };
     }
-    
-    return { correct: false, xp: 0 };
+
+    return { correct: isCorrect, xp: xpGain, updatedProgress: updates };
   }
+
+  // Helper
+  async incrementProgress(userId, entityId, type) {
+    if (!entityId || !UserProgress) return { percentage: 0 };
+
+    try {
+        const doc = await UserProgress.findOneAndUpdate(
+          { user_id: userId, entity_id: entityId.toString() },
+          { 
+            $setOnInsert: { entity_type: type, 'progress.total_items': 10 },
+            $inc: { 'progress.solved_items': 1 },
+            $set: { last_activity: new Date() }
+          },
+          { upsert: true, new: true, setDefaultsOnInsert: true }
+        );
+
+        const percent = Math.min(100, Math.round((doc.progress.solved_items / doc.progress.total_items) * 100));
+        return { percentage: percent };
+    } catch (err) {
+        console.error(`[Submit] Progress DB Error (${type}):`, err.message);
+        return { percentage: 0 };
+    }
+  }
+
 }
 
 module.exports = new GameplayService();
