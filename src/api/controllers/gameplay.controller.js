@@ -1,10 +1,12 @@
 const gameplayService = require('../../services/gameplay.service');
 const { AppError } = require('../../utils/apiError');
-
 // 1. GET SUBJECTS (Dashboard)
 exports.getSubjects = async (req, res, next) => {
   try {
-    const subjects = await gameplayService.getSubjectMap();
+    // FIX: Pass userId if logged in
+    const userId = req.user ? req.user.id : null; 
+    
+    const subjects = await gameplayService.getSubjectMap(userId);
     res.status(200).json({ status: 'success', data: subjects });
   } catch (err) {
     next(err);
@@ -15,14 +17,36 @@ exports.getSubjects = async (req, res, next) => {
 exports.getChapters = async (req, res, next) => {
   try {
     const { subject } = req.query; 
+    const userId = req.user ? req.user.id : null;
+
     if (!subject) throw new AppError('Subject is required', 400);
 
-    const chapters = await gameplayService.getChaptersForSubject(subject);
+    const chapters = await gameplayService.getChaptersForSubject(subject, userId);
     res.status(200).json({ status: 'success', data: chapters });
   } catch (err) {
     next(err);
   }
 };
+
+// 3. GET TOPICS
+exports.getTopics = async (req, res, next) => {
+  try {
+    const { chapterId } = req.query;
+    const userId = req.user ? req.user.id : null;
+
+    if (!chapterId) throw new AppError('Chapter ID is required', 400);
+
+    const topics = await gameplayService.getTopicsForChapter(chapterId, userId);
+    res.status(200).json({ status: 'success', data: topics });
+  } catch (err) {
+    next(err);
+  }
+};
+
+
+
+
+
 
 
 // 4. SUBMIT ANSWER (Progress & Scoring)
@@ -46,17 +70,7 @@ exports.submitAnswer = async (req, res, next) => {
 
 
 
-exports.getTopics = async (req, res, next) => {
-  try {
-    const { chapterId } = req.query;
-    if (!chapterId) throw new AppError('Chapter ID is required', 400);
 
-    const topics = await gameplayService.getTopicsForChapter(chapterId);
-    res.status(200).json({ status: 'success', data: topics });
-  } catch (err) {
-    next(err);
-  }
-};
 
 // UPDATE: Fetch Questions (Switch to Topic ID)
 exports.getQuestions = async (req, res, next) => {
