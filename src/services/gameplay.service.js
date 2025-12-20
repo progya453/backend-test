@@ -302,6 +302,78 @@ class GameplayService {
    * 1. GET SUBJECTS (Dashboard)
    * Merges static subject data with User's persistent progress.
    */
+async getStudentInsights(userId) {
+     const user = await UserProfile.findById(userId).select('dashboard_insight gamification');
+     if (!user) return null;
+
+     // Merge dynamic streak (since it changes daily) with cached insights
+     return {
+         ...user.dashboard_insight,
+         status: {
+             ...user.dashboard_insight.status,
+             streak: user.gamification.streak
+         }
+     };
+  }
+
+
+
+
+
+
+  /**
+   * 2. WRITE: Calculate and Cache Insights (Async)
+   * Call this inside 'submitAnswer' but DON'T await it (fire & forget).
+   */
+  async updateInsightsBackground(userId) {
+    try {
+        console.log(`[Insight] Recalculating for ${userId}...`);
+        
+        // --- perform the heavy logic here (same as previous solution) ---
+        const recentActivity = await UserActivity.find({ user_id: userId })
+          .sort({ timestamp: -1 }).limit(50).select('is_correct topic_tag');
+          
+        const total = recentActivity.length;
+        const correct = recentActivity.filter(a => a.is_correct).length;
+        const accuracy = total > 0 ? Math.round((correct / total) * 100) : 0;
+        
+        // Weakness logic
+        const wrongMap = {};
+        recentActivity.filter(a => !a.is_correct).forEach(a => {
+            wrongMap[a.topic_tag] = (wrongMap[a.topic_tag] || 0) + 1;
+        });
+        const weakTopic = Object.keys(wrongMap).sort((a,b) => wrongMap[b] - wrongMap[a])[0] || "None";
+
+        // Recommendation Logic (Simplified)
+        let rec = { type: 'resume', label: 'Continue Path', context: 'General' };
+        if (accuracy < 50 && weakTopic !== "None") {
+            rec = { type: 'revision', label: `Revise ${weakTopic}`, context: 'Weakness' };
+        }
+
+        // --- UPDATE PROFILE ---
+        await UserProfile.updateOne(
+            { _id: userId },
+            {
+                $set: {
+                    "dashboard_insight.status.recent_accuracy": accuracy,
+                    "dashboard_insight.analysis.weak_topic": weakTopic,
+                    "dashboard_insight.recommendation": rec
+                    // Update other fields as needed
+                }
+            }
+        );
+        console.log(`[Insight] Updated for ${userId}`);
+
+    } catch (err) {
+        console.error("[Insight] Update Failed:", err.message);
+    }
+  }
+
+
+
+
+
+
   async getSubjectMap(userId) {
     // A. Fetch Static Data (Active Subjects)
     // In production, you should cache this query in Redis: 'meta:subjects'
@@ -517,6 +589,7 @@ class GameplayService {
         }
       }
     }
+    this.updateInsightsBackground(userId);
 
     return { correct: isCorrect, xp: xpGain, updatedProgress: updates };
   }

@@ -19,7 +19,7 @@ router.get('/chapters', gameplayController.getChapters);
 // Fetches questions for a specific chapter
 // Usage: /api/v1/gameplay/questions?chapterId=...
 
-
+router.get('/insights', gameplayController.getInsights);
 // --- 4. PROGRESS & SCORING ---
 // Submits an answer to calculate XP, Streak, and Analytics
 router.post('/submit', gameplayController.submitAnswer);

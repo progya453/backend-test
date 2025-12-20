@@ -28,6 +28,18 @@ exports.getChapters = async (req, res, next) => {
   }
 };
 
+
+exports.getInsights = async (req, res, next) => {
+  try {
+    const userId = req.user ? req.user.id : null;
+    const insights = await gameplayService.getStudentInsights(userId);
+    res.status(200).json({ status: 'success', data: insights });
+  } catch (err) {
+    next(err);
+  }
+};
+
+
 // 3. GET TOPICS
 exports.getTopics = async (req, res, next) => {
   try {
@@ -45,7 +57,18 @@ exports.getTopics = async (req, res, next) => {
 
 
 
-
+exports.getInsights = async (req, res, next) => {
+  try {
+    const userId = req.user ? req.user.id : null;
+    
+    // Call the service to get the analysis
+    const insights = await gameplayService.getStudentInsights(userId);
+    
+    res.status(200).json({ status: 'success', data: insights });
+  } catch (err) {
+    next(err);
+  }
+};
 
 
 

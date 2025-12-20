@@ -30,6 +30,23 @@ const UserProfileSchema = new mongoose.Schema({
     streak: { type: Number, default: 0 },
     last_active_date: { type: Date }
   },
+  dashboard_insight: {
+    status: {
+      completion_avg: { type: Number, default: 0 },
+      recent_accuracy: { type: Number, default: 0 },
+      activity_status: { type: String, default: 'Active' }
+    },
+    analysis: {
+      weak_topic: { type: String, default: 'None' },
+      decay_risk: { type: String, default: 'None' },
+      strongest_subject: { type: String, default: 'None' }
+    },
+    recommendation: {
+      type: { type: String, default: 'continue' },
+      label: { type: String, default: 'Start Learning' },
+      context: { type: String, default: 'General' }
+    }
+  },
   ai_report: {
     predicted_percentile: Number,
     weakness_summary: String,
