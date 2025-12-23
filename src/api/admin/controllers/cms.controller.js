@@ -1,4 +1,5 @@
-const Stream = require('../../../models/Stream.model');   // Adjust ../ based on depth
+
+const Stream = require('../../../models/Stream.model');   
 const Subject = require('../../../models/Subject.model');
 const { AppError } = require('../../../utils/apiError');
 
@@ -20,15 +21,16 @@ exports.getAllStreams = async (req, res, next) => {
 // --- SUBJECTS ---
 exports.createSubject = async (req, res, next) => {
   try {
-    const { name, streamId, iconUrl } = req.body;
-    
+    const { name, streamId, iconUrl, id, boardClass } = req.body;
     // Verify Stream Exists
     const stream = await Stream.findById(streamId);
     if (!stream) throw new AppError('Stream not found', 404);
 
     const subject = await Subject.create({
+      id: id || `SUB-${Date.now()}`, 
+      boardClass: boardClass || 'General', 
       name,
-      stream: stream.name, // Denormalized for easier querying
+      stream: stream.name, 
       stream_id: streamId,
       icon_url: iconUrl
     });

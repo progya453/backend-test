@@ -1,10 +1,28 @@
+
+
 const mongoose = require('mongoose');
 
 const TopicSchema = new mongoose.Schema({
+  // --- Schema 1 Fields ---
+  id: { 
+    type: String, 
+    required: true,
+    unique: true 
+  },
+  chapterId: { 
+    type: String, 
+    required: true 
+  }, 
+  description: { 
+    type: String 
+  },
+
+  // --- Schema 2 Fields ---
   name: { 
     type: String, 
     required: true 
   },
+  // ✅ ObjectId Reference
   chapter_id: {
     type: mongoose.Schema.Types.ObjectId,
     ref: 'Chapter',
@@ -13,11 +31,19 @@ const TopicSchema = new mongoose.Schema({
   },
   order_index: { 
     type: Number, 
-    required: true 
-  }, // Defines Zig-Zag position (1, 2, 3...)
-  slug: { type: String },
-  icon_url: { type: String, default: 'assets/icons/topic.svg' },
-  is_active: { type: Boolean, default: true }
+    required: true
+  }, 
+  slug: { 
+    type: String 
+  },
+  icon_url: { 
+    type: String, 
+    default: 'assets/icons/topic.svg' 
+  },
+  is_active: { 
+    type: Boolean, 
+    default: true 
+  }
 }, { 
   collection: 'Global_Topics', 
   timestamps: true 

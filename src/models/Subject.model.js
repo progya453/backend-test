@@ -1,11 +1,24 @@
+
 const mongoose = require('mongoose');
 
 const SubjectSchema = new mongoose.Schema({
+  // --- Fields from Schema B ---
+  id: { 
+    type: String, 
+    required: true,
+    unique: true 
+  },
+  boardClass: { 
+    type: String, 
+    required: true 
+  },
+
+  // --- Fields from Schema A ---
   name: { 
     type: String, 
     required: true 
   },
-  // ✅ ADDED THIS FIELD to link back to the Stream
+  // ✅ Linked to Stream
   stream_id: {
     type: mongoose.Schema.Types.ObjectId,
     ref: 'Stream',
