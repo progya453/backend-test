@@ -1,6 +1,7 @@
 const express = require('express');
 const cors = require('cors'); // <--- Import CORS
 const cookieParser = require('cookie-parser'); // <--- Import Cookie Parser
+
 const app = express();
 
 // 1. CORS CONFIGURATION (Crucial for 401 Fix)
@@ -18,11 +19,12 @@ app.use(cookieParser()); // <--- Must be here to read the JWT
 const authRoutes = require('./api/routes/auth.routes');
 const gameplayRoutes = require('./api/routes/gameplay.routes'); // <--- Gameplay Routes
 const adminRoutes = require('./api/admin/routes/admin.routes');
+const analyticsRoutes = require('./api/routes/analytics.routes');
 
 app.use('/api/v1/auth', authRoutes);
 app.use('/api/v1/gameplay', gameplayRoutes);
 app.use('/api/v1/admin', adminRoutes);
-
+app.use('/api/v1/reports', analyticsRoutes);
 // 4. ERROR HANDLER
 const { globalErrorHandler } = require('./api/controllers/error.controller');
 app.use(globalErrorHandler);
