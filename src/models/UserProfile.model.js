@@ -2,6 +2,7 @@
 
 const mongoose = require('mongoose');
 const bcrypt = require('bcryptjs');
+const { type } = require('node:os');
 
 const UserProfileSchema = new mongoose.Schema({
   // ✅ 1. Identity (String ID)
@@ -12,6 +13,7 @@ const UserProfileSchema = new mongoose.Schema({
 
   // ✅ 2. Core Profile
   profile: {
+    name: {type: String, required: true, unique: false},
     email: { type: String, required: true, unique: true },
     stream: { type: String, required: true },
     district: String,
@@ -23,6 +25,8 @@ const UserProfileSchema = new mongoose.Schema({
   gamification: {
     total_xp: { type: Number, default: 0 },
     streak: { type: Number, default: 0 },
+    current_league: { type: Number, default: 1},
+    top_accuracy: { type: Number, default: 0},
     last_active_date: { type: Date }
   },
 
@@ -60,8 +64,51 @@ const UserProfileSchema = new mongoose.Schema({
     memory_strength: { type: Number, default: 0 },
     next_review: { type: Date, default: Date.now },
     mastery_level: { type: Number, default: 0 }
-  }]
-}, {
+  }],
+
+wallet: {
+  gems: { 
+    type: Number, 
+    default: 0, 
+    min: [0, 'Gem balance cannot be negative'] // Critical validation
+  },
+  // Track paid vs free gems (Professional Standard for refunds/audits)
+  purchased_gems: { type: Number, default: 0 }, 
+  earned_gems: { type: Number, default: 0 },
+  
+  // Audit trail
+  last_transaction_date: { type: Date }
+  },
+
+
+  subscription: {
+    plan: { 
+      type: String, 
+      enum: ['free', 'pro', 'premium'], // Expandable for future tiers
+      default: 'free' 
+    },
+    status: { 
+      type: String, 
+      enum: ['active', 'past_due', 'canceled', 'expired'], 
+      default: 'active' 
+    },
+    billing_cycle: { 
+      type: String, 
+      enum: ['monthly', 'yearly', 'lifetime', 'none'], 
+      default: 'none' 
+    },
+    start_date: { type: Date },
+    end_date: { type: Date }, // Critical for checking access
+    
+    // For Payment Gateways (Stripe/Razorpay/PayPal)
+    provider_subscription_id: { type: String, select: false }, // Hide from frontend
+    auto_renew: { type: Boolean, default: false }
+  }
+
+
+},
+
+{
   timestamps: true,
   collection: 'User_Smart_Profile'
 });

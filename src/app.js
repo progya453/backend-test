@@ -20,11 +20,15 @@ const authRoutes = require('./api/routes/auth.routes');
 const gameplayRoutes = require('./api/routes/gameplay.routes'); // <--- Gameplay Routes
 const adminRoutes = require('./api/admin/routes/admin.routes');
 const analyticsRoutes = require('./api/routes/analytics.routes');
+const userProfileRoutes = require('./api/routes/userprofile.routes')
+
 
 app.use('/api/v1/auth', authRoutes);
 app.use('/api/v1/gameplay', gameplayRoutes);
 app.use('/api/v1/admin', adminRoutes);
 app.use('/api/v1/reports', analyticsRoutes);
+app.use('/api/v1/profile', userProfileRoutes)
+
 // 4. ERROR HANDLER
 const { globalErrorHandler } = require('./api/controllers/error.controller');
 app.use(globalErrorHandler);
