@@ -3,9 +3,9 @@ const mongoose = require('mongoose');
 const UserActivitySchema = new mongoose.Schema({
   user_id: {
     type: String,
-    ref: 'UserProfile', // Mongoose Virtual Reference
+    ref: 'UserProfile',
     required: true,
-    index: true // Important for Sharding
+    index: true 
   },
   question_id: {
     type: String,
@@ -13,7 +13,7 @@ const UserActivitySchema = new mongoose.Schema({
     required: true
   },
   topic_tag: {
-    type: String, // Denormalized for fast analytics without joins
+    type: String,
     required: true
   },
   is_correct: {
@@ -25,7 +25,7 @@ const UserActivitySchema = new mongoose.Schema({
     required: true
   },
   time_taken: {
-    type: Number, // Seconds
+    type: Number, 
     required: true
   },
   attempt_number: {
@@ -41,10 +41,10 @@ const UserActivitySchema = new mongoose.Schema({
 });
 
 // INDEXING STRATEGY
-// 1. User History (e.g., "Recent Activity" on Dashboard)
+// 1. User History 
 UserActivitySchema.index({ user_id: 1, timestamp: -1 });
 
-// 2. AI Analytics (e.g., "How many people got this Question wrong?")
+// 2. AI Analytics 
 UserActivitySchema.index({ question_id: 1, is_correct: 1 });
 
 module.exports = mongoose.model('UserActivity', UserActivitySchema);

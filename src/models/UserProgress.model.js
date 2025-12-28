@@ -1,7 +1,7 @@
 const mongoose = require('mongoose');
 
 const UserProgressSchema = new mongoose.Schema({
-  // ✅ MUST BE STRING for user IDs like "ram"
+  //  MUST BE STRING for user IDs like "ram"
   user_id: { type: String, ref: 'UserProfile', required: true, index: true },
   
   entity_id: { type: String, required: true, index: true }, 

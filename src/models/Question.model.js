@@ -2,7 +2,6 @@
 const mongoose = require('mongoose');
 
 const QuestionSchema = new mongoose.Schema({
-  // ✅ ObjectId Link
   topic_id: {
     type: mongoose.Schema.Types.ObjectId,
     ref: 'Topic',

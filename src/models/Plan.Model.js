@@ -11,21 +11,21 @@ const PlanSchema = new mongoose.Schema({
   },
 
   // 2. Display Information (Sent to Frontend)
-  name: { type: String, required: true }, // e.g., "Topper Pro"
-  subtitle: { type: String },             // e.g., "Unlock Your Dream Rank"
-  description: { type: String },          // e.g., "Best for serious students"
+  name: { type: String, required: true }, 
+  subtitle: { type: String },             
+  description: { type: String },          
   
   // 3. Pricing Logic
-  price: { type: Number, required: true }, // e.g., 99
+  price: { type: Number, required: true }, 
   currency: { type: String, default: 'INR' },
-  duration_days: { type: Number, required: true }, // 30 for monthly, 365 for yearly
+  duration_days: { type: Number, required: true }, 
   
   // 4. Feature Gating (What does this plan unlock?)
-  features: [{ type: String }], // List of strings to show in the UI list
+  features: [{ type: String }],
   
   // 5. Config Flags
-  isActive: { type: Boolean, default: true }, // Soft delete (don't show discontinued plans)
-  isRecommended: { type: Boolean, default: false }, // To show the "Most Popular" badge
+  isActive: { type: Boolean, default: true }, 
+  isRecommended: { type: Boolean, default: false }, 
   
   // 6. Payment Gateway IDs (Crucial for real payments)
   razorpay_plan_id: { type: String },
