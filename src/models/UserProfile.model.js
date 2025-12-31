@@ -15,6 +15,7 @@ const UserProfileSchema = new mongoose.Schema({
   profile: {
     name: {type: String, required: true, unique: false},
     email: { type: String, required: true, unique: true },
+    avatar: { type: String, default: '' },
     stream: { type: String, required: true },
     district: String,
     password: { type: String, required: true, minlength: 6, select: false },
