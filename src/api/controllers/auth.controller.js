@@ -39,22 +39,77 @@ const createSendToken = (user, statusCode, res) => {
   });
 };
 
+<<<<<<< HEAD
 exports.register = async (req, res, next) => {
   try {
     // 🟢 FIX: Extract 'name' (or fullName) from request
     const { name, fullName, email, stream, district, userId, password } = req.body;
+=======
+
+
+// exports.register = async (req, res, next) => {
+  
+//   try {
+//     const { email, stream, district, userId, password } = req.body;
+
+//     if (!password) {
+//       throw new AppError('Password is required', 400);
+//     }
+
+//     const existing = await UserProfile.findOne({ "profile.email": email });
+//     if (existing) throw new AppError('Email already registered', 400);
+
+//     // ✅ SAVE PASSWORD INSIDE PROFILE
+//     const newUser = await UserProfile.create({
+//       _id: userId || `u_${Date.now()}`,
+//       profile: { 
+//         email, 
+//         stream, 
+//         district,
+//         password // <--- Nested here
+//       },
+//       gamification: { total_xp: 0, streak: 0 }
+//     });
+
+//     createSendToken(newUser, 201, res);
+//   } catch (err) {
+//     next(err);
+//   }
+// };
+
+
+
+
+
+exports.register = async (req, res, next) => {
+  try {
+    // 1. Get 'name' from request body
+    const { name, email, stream, district, userId, password } = req.body;
+>>>>>>> origin/payment
 
     if (!password) {
       throw new AppError('Password is required', 400);
+    }
+    // Simple validation for name
+    if (!name) {
+      throw new AppError('Name is required', 400);
     }
 
     const existing = await UserProfile.findOne({ "profile.email": email });
     if (existing) throw new AppError('Email already registered', 400);
 
+<<<<<<< HEAD
     const newUser = await UserProfile.create({
       _id: userId || `u_${Date.now()}`,
       profile: { 
         name: name || fullName, // 🟢 FIX: Save the name (Required by Schema)
+=======
+    // 2. Save 'name' inside the profile object
+    const newUser = await UserProfile.create({
+      _id: userId || `u_${Date.now()}`,
+      profile: { 
+        name,      // <--- ADDED THIS
+>>>>>>> origin/payment
         email, 
         stream, 
         district,
@@ -68,6 +123,7 @@ exports.register = async (req, res, next) => {
     next(err);
   }
 };
+
 
 exports.login = async (req, res, next) => {
    console.log("Login attempt:", req.body);

@@ -5,7 +5,7 @@ const StreamSchema = new mongoose.Schema({
     type: String, 
     required: true, 
     unique: true,
-    enum: ['Science', 'Commerce', 'Arts'] // Restrict to these 3 for now, or remove enum for flexibility
+    enum: ['Science', 'Commerce', 'Arts'] 
   },
   slug: {
     type: String,

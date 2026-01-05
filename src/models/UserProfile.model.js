@@ -5,13 +5,13 @@ const bcrypt = require('bcryptjs');
 const { type } = require('node:os');
 
 const UserProfileSchema = new mongoose.Schema({
-  // ✅ 1. Identity (String ID)
+  //  1. Identity (String ID)
   _id: {
     type: String,
     required: true
   },
 
-  // ✅ 2. Core Profile
+  //  2. Core Profile
   profile: {
     name: {type: String, required: true, unique: false},
     email: { type: String, required: true, unique: true },
@@ -22,7 +22,7 @@ const UserProfileSchema = new mongoose.Schema({
     role: { type: String, enum: ['student', 'admin'], default: 'student', select: false }
   },
 
-  // ✅ 3. Gamification
+  //  3. Gamification
   gamification: {
     total_xp: { type: Number, default: 0 },
     streak: { type: Number, default: 0 },
@@ -31,7 +31,7 @@ const UserProfileSchema = new mongoose.Schema({
     last_active_date: { type: Date, default: null }
   },
 
-  // ✅ 4. Dashboard Insights
+  //  4. Dashboard Insights
   dashboard_insight: {
     status: {
       completion_avg: { type: Number, default: 0 },
@@ -50,7 +50,7 @@ const UserProfileSchema = new mongoose.Schema({
     }
   },
 
-  // ✅ 5. AI Report Card
+  //  5. AI Report Card
   ai_report: {
     predicted_percentile: Number,
     weakness_summary: String,
@@ -59,7 +59,7 @@ const UserProfileSchema = new mongoose.Schema({
     reasoning: String
   },
 
-  // ✅ 6. SRS Memory
+  //  6. SRS Memory
   topic_states: [{
     topic: { type: String, required: true },
     memory_strength: { type: Number, default: 0 },
@@ -71,7 +71,7 @@ wallet: {
   gems: { 
     type: Number, 
     default: 0, 
-    min: [0, 'Gem balance cannot be negative'] // Critical validation
+    min: [0, 'Gem balance cannot be negative'] 
   },
   // Track paid vs free gems (Professional Standard for refunds/audits)
   purchased_gems: { type: Number, default: 0 }, 
@@ -85,7 +85,7 @@ wallet: {
   subscription: {
     plan: { 
       type: String, 
-      enum: ['free', 'pro', 'premium'], // Expandable for future tiers
+      enum: ['free', 'pro', 'premium'], 
       default: 'free' 
     },
     status: { 
@@ -99,10 +99,10 @@ wallet: {
       default: 'none' 
     },
     start_date: { type: Date },
-    end_date: { type: Date }, // Critical for checking access
+    end_date: { type: Date }, 
     
     // For Payment Gateways (Stripe/Razorpay/PayPal)
-    provider_subscription_id: { type: String, select: false }, // Hide from frontend
+    provider_subscription_id: { type: String, select: false }, 
     auto_renew: { type: Boolean, default: false }
   }
 

@@ -60,7 +60,7 @@ const ChapterSchema = new mongoose.Schema({
     type: String, 
     required: true 
   },
-  // ✅ Relational Reference (ObjectId)
+  // Relational Reference (ObjectId)
   subject_id: { 
     type: mongoose.Schema.Types.ObjectId, 
     ref: 'Subject', 

@@ -18,7 +18,7 @@ const SubjectSchema = new mongoose.Schema({
     type: String, 
     required: true 
   },
-  // ✅ Linked to Stream
+  // Linked to Stream
   stream_id: {
     type: mongoose.Schema.Types.ObjectId,
     ref: 'Stream',
