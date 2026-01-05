@@ -27,4 +27,7 @@ router.post('/submit', gameplayController.submitAnswer);
 router.get('/topics', gameplayController.getTopics); // New Route
 router.get('/questions', gameplayController.getQuestions);
 
+router.post('/update-streak', gameplayController.triggerStreakUpdate)
+
+
 module.exports = router;

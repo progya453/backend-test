@@ -108,3 +108,67 @@ exports.getQuestions = async (req, res, next) => {
     next(err);
   }
 };
+
+
+
+
+// ... existing code ...
+
+// 🔴 YOUR EXISTING LOGIC (Keep this as a helper function)
+// Note: I renamed it to 'calculateStreak' to avoid confusion, 
+// and removed 'exports' so it's just a local helper, or keep it exported if used elsewhere.
+const calculateStreak = async (user) => {
+  console.log("I am updating streak......")
+  const now = new Date();
+  const lastDate = user.gamification.lastActivityDate 
+    ? new Date(user.gamification.lastActivityDate) 
+    : null;
+
+  const todayMidnight = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate()));
+  
+  let lastMidnight = null;
+  if (lastDate) {
+    lastMidnight = new Date(Date.UTC(lastDate.getUTCFullYear(), lastDate.getUTCMonth(), lastDate.getUTCDate()));
+  }
+
+  if (!lastMidnight) {
+    user.gamification.streak = 1;
+  } 
+  else if (todayMidnight.getTime() === lastMidnight.getTime()) {
+    // Already played today
+  } 
+  else if (todayMidnight.getTime() === lastMidnight.getTime() + (24 * 60 * 60 * 1000)) {
+    user.gamification.streak += 1;
+  } 
+  else {
+    user.gamification.streak = 1; 
+  }
+
+  user.gamification.lastActivityDate = now;
+  await user.save();
+  return user.gamification.streak;
+};
+
+// 🟢 NEW CONTROLLER FUNCTION (Link this to the Router)
+exports.triggerStreakUpdate = async (req, res, next) => {
+
+  console.log("ooooooooooooooooooooooo")
+
+  try {
+    // 1. Get user from the request (Auth Middleware put it there)
+    const user = req.user;
+
+    // 2. Run the logic
+    const newStreak = await calculateStreak(user);
+
+    // 3. Send response
+    res.status(200).json({
+      status: 'success',
+      data: {
+        streak: newStreak
+      }
+    });
+  } catch (err) {
+    next(err);
+  }
+};

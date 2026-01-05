@@ -28,7 +28,7 @@ const UserProfileSchema = new mongoose.Schema({
     streak: { type: Number, default: 0 },
     current_league: { type: Number, default: 1},
     top_accuracy: { type: Number, default: 0},
-    last_active_date: { type: Date }
+    last_active_date: { type: Date, default: null }
   },
 
   // ✅ 4. Dashboard Insights

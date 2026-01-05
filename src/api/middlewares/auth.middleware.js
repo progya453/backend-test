@@ -6,9 +6,13 @@ const { AppError } = require('../../utils/apiError');
 exports.protect = async (req, res, next) => {
   let token;
 
+  console.log("recieved")
+  console.log(req.url)
   if (req.cookies && req.cookies.jwt) {
     token = req.cookies.jwt;
+   
   }
+
   // 2. Fallback to Header (Optional, for mobile apps later)
   else if (req.headers.authorization && req.headers.authorization.startsWith('Bearer')) {
     token = req.headers.authorization.split(' ')[1];
@@ -23,6 +27,7 @@ exports.protect = async (req, res, next) => {
 
     // 3. Check if user still exists
     const currentUser = await UserProfile.findById(decoded.id);
+
     if (!currentUser) {
       return next(new AppError('The user belonging to this token no longer exists.', 401));
     }

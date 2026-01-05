@@ -67,12 +67,13 @@ exports.updateProfile = async (req, res) => {
   
       // 3. Update using $set
       // Using $set ensures we only modify the specific fields listed in 'updates'
+      console.log(updates)
       const updatedUser = await User.findByIdAndUpdate(
         req.user.id,
         { $set: updates }, 
         { new: true }
       );
-  
+      console.log(updatedUser)
       res.json({
         success: true,
         data: updatedUser, // Return the full user or the updates
