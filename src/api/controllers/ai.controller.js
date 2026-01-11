@@ -247,12 +247,84 @@ exports.getCognitiveProfile = async (req, res) => {
 };
 
 // --- 2. STUDENT MASTERY ---
+
+
+
+// exports.getStudentMastery = async (req, res) => {
+//     try {
+//         const userId = req.user._id;
+//         const metrics = await calculateCommonMetrics(userId);
+        
+//         const aiPayload = {
+//             accuracy_rate: metrics.accuracy_rate,
+//             difficulty_weighted_score: metrics.difficulty_weighted_score,
+//             time_efficiency_ratio: metrics.time_efficiency_ratio,
+//             cognitive_dropoff: metrics.cognitive_dropoff,
+//             consistency_index: metrics.consistency_index,
+//             days_since_last_active: metrics.days_since_last_active,
+//             streak: metrics.streak
+//         };
+
+//         const aiResponse = await axios.post(`${AI_ENGINE_URL}/predict-mastery`, aiPayload);
+//         const score = aiResponse.data.mastery_score;
+
+//         let levelLabel = "Novice";
+//         if (score > 85) levelLabel = "Grandmaster";
+//         else if (score > 70) levelLabel = "Expert";
+//         else if (score > 50) levelLabel = "Apprentice";
+
+//         res.status(200).json({
+//             success: true,
+//             mastery_score: score.toFixed(1),
+//             level: levelLabel,
+//             ai_data: aiPayload // 👈 THIS IS CRITICAL (The frontend reads m.consistency_index from here)
+//         });
+//     } catch (error) {
+//         console.error("AI Mastery Error:", error.message);
+//         res.status(500).json({ success: false, message: "AI Engine Failed" });
+//     }
+// };
+
+// ... Imports remain the same
+
 exports.getStudentMastery = async (req, res) => {
     try {
         const userId = req.user._id;
-        // ... (Reuse your existing logic here, or use the helper function below)
         const metrics = await calculateCommonMetrics(userId);
         
+        // --- 🆕 NEW LOGIC: FIND WEAKEST TOPIC ---
+        // Group activity by Topic ID and sort by Accuracy (Ascending)
+        const weakestTopicAgg = await UserActivity.aggregate([
+            { $match: { user_id: userId } },
+            {
+                $lookup: {
+                    from: 'questions',
+                    let: { qId: { $toObjectId: "$question_id" } },
+                    pipeline: [
+                        { $match: { $expr: { $eq: ["$_id", "$$qId"] } } },
+                        { $project: { topic_id: 1 } } // Get Topic ID
+                    ],
+                    as: 'q'
+                }
+            },
+            { $unwind: "$q" },
+            {
+                $group: {
+                    _id: "$q.topic_id",
+                    accuracy: { $avg: { $cond: ["$is_correct", 1, 0] } },
+                    total_attempts: { $sum: 1 }
+                }
+            },
+            // Only look at topics where they have tried at least 3 questions (avoid noise)
+            { $match: { total_attempts: { $gte: 3 } } },
+            { $sort: { accuracy: 1 } }, // Lowest accuracy first
+            { $limit: 1 }
+        ]);
+
+        // If no data, return null
+        const weakestTopicId = weakestTopicAgg.length > 0 ? weakestTopicAgg[0]._id : null;
+        // ----------------------------------------
+
         const aiPayload = {
             accuracy_rate: metrics.accuracy_rate,
             difficulty_weighted_score: metrics.difficulty_weighted_score,
@@ -271,12 +343,21 @@ exports.getStudentMastery = async (req, res) => {
         else if (score > 70) levelLabel = "Expert";
         else if (score > 50) levelLabel = "Apprentice";
 
-        res.status(200).json({ success: true, mastery_score: score.toFixed(1), level: levelLabel });
+        res.status(200).json({
+            success: true,
+            mastery_score: score.toFixed(1),
+            level: levelLabel,
+            ai_data: aiPayload,
+            weakest_topic_id: weakestTopicId // 👈 SEND THIS TO FRONTEND
+        });
     } catch (error) {
         console.error("AI Mastery Error:", error.message);
         res.status(500).json({ success: false, message: "AI Engine Failed" });
     }
 };
+
+
+
 
 // --- 3. EXAM PROJECTOR (NEW) ---
 // exports.getExamPrediction = async (req, res) => {
