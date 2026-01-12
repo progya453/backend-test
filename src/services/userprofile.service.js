@@ -1,5 +1,7 @@
 const mongoose = require('mongoose')
 const UserProfile = require('../models/UserProfile.model')
+const Feedback = require('../models/Feedback.model');
+
 
 
 class UserProfileService {
@@ -24,6 +26,17 @@ class UserProfileService {
         if(!userStats) return null
 
         return userStats
+    }
+
+
+    async submitFeedback(userId, type, rating, message) {
+        const feedback = await Feedback.create({
+            user_id: userId,
+            type,
+            rating,
+            message
+        });
+        return feedback;
     }
 
 }

@@ -85,3 +85,32 @@ exports.updateProfile = async (req, res) => {
       res.status(500).json({ success: false, message: 'Server Error' });
     }
   };
+
+
+
+  exports.submitFeedback = async (req, res, next) => {
+    try {
+        const userId = req.user ? req.user.id : null;
+        const { type, rating, message } = req.body;
+
+        if (!userId) {
+            return res.status(401).json({ status: 'error', message: 'User not authenticated' });
+        }
+
+        // Validate input
+        if (!rating || !message) {
+             return res.status(400).json({ status: 'error', message: 'Rating and message are required' });
+        }
+
+        const feedback = await UserProfileService.submitFeedback(userId, type, rating, message);
+
+        res.status(201).json({
+            status: 'success',
+            message: 'Feedback submitted successfully',
+            data: feedback
+        });
+
+    } catch (err) {
+        next(err);
+    }
+};

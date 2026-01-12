@@ -6,9 +6,9 @@ const JWT_SECRET = process.env.JWT_SECRET || 'dev-secret';
 const JWT_EXPIRES_IN = '24h';
 
 const cookieOptions = {
-  expires: new Date(Date.now() + 24 * 60 * 60 * 1000), 
-  httpOnly: true,                                      
-  secure: false,  
+  expires: new Date(Date.now() + 24 * 60 * 60 * 1000),
+  httpOnly: true,
+  secure: false,
   sameSite: 'lax',
 };
 
@@ -25,97 +25,40 @@ const createSendToken = (user, statusCode, res) => {
     status: 'success',
     data: {
       user: {
-        _id: user._id,           // ✅ Fixed: Use _id to match frontend interface
-        name: user.profile.name, // ✅ Fixed: Send actual name, not ID
+        _id: user._id,
+        name: user.profile.name,
         email: user.profile.email,
         stream: user.profile.stream,
         avatar: user.profile.avatar,
-        
-        // 🟢 FIX: This was missing! 
-        // Now the frontend will receive the plan ('free'/'pro')
-        subscription: user.subscription 
+        subscription: user.subscription || 'free'
       }
     }
   });
 };
 
-<<<<<<< HEAD
+
+// -------- REGISTER ----------
 exports.register = async (req, res, next) => {
   try {
-    // 🟢 FIX: Extract 'name' (or fullName) from request
     const { name, fullName, email, stream, district, userId, password } = req.body;
-=======
 
-
-// exports.register = async (req, res, next) => {
-  
-//   try {
-//     const { email, stream, district, userId, password } = req.body;
-
-//     if (!password) {
-//       throw new AppError('Password is required', 400);
-//     }
-
-//     const existing = await UserProfile.findOne({ "profile.email": email });
-//     if (existing) throw new AppError('Email already registered', 400);
-
-//     // ✅ SAVE PASSWORD INSIDE PROFILE
-//     const newUser = await UserProfile.create({
-//       _id: userId || `u_${Date.now()}`,
-//       profile: { 
-//         email, 
-//         stream, 
-//         district,
-//         password // <--- Nested here
-//       },
-//       gamification: { total_xp: 0, streak: 0 }
-//     });
-
-//     createSendToken(newUser, 201, res);
-//   } catch (err) {
-//     next(err);
-//   }
-// };
-
-
-
-
-
-exports.register = async (req, res, next) => {
-  try {
-    // 1. Get 'name' from request body
-    const { name, email, stream, district, userId, password } = req.body;
->>>>>>> origin/payment
-
-    if (!password) {
-      throw new AppError('Password is required', 400);
-    }
-    // Simple validation for name
-    if (!name) {
-      throw new AppError('Name is required', 400);
-    }
+    if (!password) throw new AppError('Password is required', 400);
+    if (!name && !fullName) throw new AppError('Name is required', 400);
 
     const existing = await UserProfile.findOne({ "profile.email": email });
     if (existing) throw new AppError('Email already registered', 400);
 
-<<<<<<< HEAD
     const newUser = await UserProfile.create({
       _id: userId || `u_${Date.now()}`,
-      profile: { 
-        name: name || fullName, // 🟢 FIX: Save the name (Required by Schema)
-=======
-    // 2. Save 'name' inside the profile object
-    const newUser = await UserProfile.create({
-      _id: userId || `u_${Date.now()}`,
-      profile: { 
-        name,      // <--- ADDED THIS
->>>>>>> origin/payment
-        email, 
-        stream, 
+      profile: {
+        name: name || fullName,
+        email,
+        stream,
         district,
-        password 
+        password
       },
-      gamification: { total_xp: 0, streak: 0 }
+      gamification: { total_xp: 0, streak: 0 },
+      subscription: "free"
     });
 
     createSendToken(newUser, 201, res);
@@ -125,16 +68,18 @@ exports.register = async (req, res, next) => {
 };
 
 
+// -------- LOGIN ----------
 exports.login = async (req, res, next) => {
-   console.log("Login attempt:", req.body);
+  console.log("Login attempt:", req.body);
   try {
     const { email, password } = req.body;
 
-    if (!email || !password) {
+    if (!email || !password)
       return next(new AppError('Please provide email and password', 400));
-    }
 
-    const user = await UserProfile.findOne({ "profile.email": email }).select('+profile.password');
+    const user = await UserProfile
+      .findOne({ "profile.email": email })
+      .select('+profile.password');
 
     if (!user || !(await user.correctPassword(password, user.profile.password))) {
       return next(new AppError('Incorrect email or password', 401));
@@ -146,10 +91,13 @@ exports.login = async (req, res, next) => {
   }
 };
 
+
+// -------- LOGOUT ----------
 exports.logout = (req, res) => {
   res.cookie('jwt', 'loggedout', {
     expires: new Date(Date.now() + 10 * 1000),
     httpOnly: true
   });
+
   res.status(200).json({ status: 'success' });
 };
