@@ -55,6 +55,11 @@ const ChapterSchema = new mongoose.Schema({
     required: true 
   },
 
+  banner: { 
+    type: String,
+    default: '' // Optional banner for the chapter
+  },
+
   // --- Fields from Schema A (App Logic) ---
   name: { 
     type: String, 

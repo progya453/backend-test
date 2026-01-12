@@ -13,6 +13,11 @@ const SubjectSchema = new mongoose.Schema({
     required: true 
   },
 
+  image: { 
+    type: String, 
+    default: 'https://res.cloudinary.com/demo/image/upload/v1/samples/animals/kitten-playing.gif' // Fallback
+  },
+
   // --- Fields from Schema A ---
   name: { 
     type: String, 

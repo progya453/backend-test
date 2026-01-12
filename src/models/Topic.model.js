@@ -9,6 +9,9 @@ const TopicSchema = new mongoose.Schema({
     required: true,
     unique: true 
   },
+  image: {
+    type: String
+  },
   chapterId: { 
     type: String, 
     required: true 
