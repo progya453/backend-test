@@ -195,7 +195,11 @@ const UserProgress = require('../../models/UserProgress.model'); // Required for
 const Chapter = require('../../models/Chapter.model'); // Required for Syllabus
 const axios = require('axios');
 
-const AI_ENGINE_URL = process.env.AI_ENGINE_URL || 'http://127.0.0.1:8000';
+// const AI_ENGINE_URL = process.env.AI_ENGINE_URL || 'http://127.0.0.1:8000';
+
+
+const AI_ENGINE_URL = process.env.AI_ENGINE_URL || 'https://ai-engine-p21z.onrender.com';
+
 
 const getDifficultyWeight = (level) => {
     if (level === 'Hard') return 3;
