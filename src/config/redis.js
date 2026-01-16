@@ -17,8 +17,15 @@ const pubClient = new Redis(process.env.REDIS_URL);
 const subClient = new Redis(process.env.REDIS_URL);
 
 redisClient.on("connect", () => logger.info("✅ Redis Connected"));
-redisClient.on("error", (err) =>
-  logger.error("❌ Redis Error:", err.message)
-);
+[redisClient, pubClient, subClient].forEach((client, idx) => {
+  client.on("connect", () =>
+    logger.info(`✅ Redis client ${idx} connected`)
+  );
+
+  client.on("error", (err) =>
+    logger.error(`❌ Redis client ${idx} error:`, err.message)
+  );
+});
+
 
 module.exports = { redisClient, pubClient, subClient };
