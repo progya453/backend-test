@@ -1,31 +1,26 @@
-// src/config/redis.js
-const Redis = require("ioredis");
-const logger = require("./logger");
+const Redis = require('ioredis');
+const logger = require('./logger'); // Simple console wrapper
 
-// Use REDIS_URL (recommended)
-const redisClient = new Redis(process.env.REDIS_URL, {
-  maxRetriesPerRequest: 3,
-  enableReadyCheck: true,
-  retryStrategy(times) {
-    if (times > 5) return null; // stop retrying
-    return Math.min(times * 200, 1000);
-  },
-});
+const redisConfig = {
+  host: process.env.REDIS_HOST || '127.0.0.1',
+  port: process.env.REDIS_PORT || 6379,
+  password: process.env.REDIS_PASSWORD || undefined,
+  ...(process.env.REDIS_TLS === 'true' && { 
+    tls: {
+      rejectUnauthorized: false 
+    } 
+  }),
+  retryStrategy: (times) => Math.min(times * 50, 2000), // Exponential backoff
+};
 
-// Separate clients for pub/sub
-const pubClient = new Redis(process.env.REDIS_URL);
-const subClient = new Redis(process.env.REDIS_URL);
+// 1. General Cache Client
+const redisClient = new Redis(redisConfig);
 
-redisClient.on("connect", () => logger.info("✅ Redis Connected"));
-[redisClient, pubClient, subClient].forEach((client, idx) => {
-  client.on("connect", () =>
-    logger.info(`✅ Redis client ${idx} connected`)
-  );
+// 2. Pub/Sub Clients (Required for Socket.IO Adapter)
+const pubClient = new Redis(redisConfig);
+const subClient = new Redis(redisConfig);
 
-  client.on("error", (err) =>
-    logger.error(`❌ Redis client ${idx} error:`, err.message)
-  );
-});
-
+redisClient.on('connect', () => logger.info('✅ Redis Connected'));
+redisClient.on('error', (err) => logger.error('❌ Redis Error:', err));
 
 module.exports = { redisClient, pubClient, subClient };

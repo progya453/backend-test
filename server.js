@@ -3,6 +3,7 @@ const http = require('http');
 const app = require('./src/app');
 const setupSockets = require('./src/sockets/socketServer');
 const { redisClient } = require('./src/config/redis'); // Init Redis Connection
+const { initRedis, getPubClient, getSubClient } = require("./src/config/redis");
 const connectDB = require('./src/config/db'); // Database Connection
 
 // Import Admin Routes
