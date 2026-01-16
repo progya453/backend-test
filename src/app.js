@@ -6,7 +6,7 @@ const app = express();
 
 // 1. CORS CONFIGURATION (Crucial for 401 Fix)
 app.use(cors({
-  origin: ['http://localhost:4200', 'https://scriencerush3-backend-production.onrender.com'], // Must match your Angular URL exactly
+  origin: ['http://localhost:4200', 'scriencerush-frontend-production.vercel.app'], // Must match your Angular URL exactly
   credentials: true,               // Allow Cookies to travel
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS', 'PATCH']
 }));
