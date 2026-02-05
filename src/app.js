@@ -24,6 +24,7 @@ const userProfileRoutes = require('./api/routes/userprofile.routes')
 const PlanRoutes = require('./api/routes/plan.routes')
 const paymentRoutes = require('./api/routes/payment.routes');
 const aiRoutes = require('./api/routes/ai.routes');
+const analyticsRouter = require('./api/routes/analytics.routes');
 
 app.use('/api/v1/auth', authRoutes);
 app.use('/api/v1/gameplay', gameplayRoutes);
@@ -32,7 +33,7 @@ app.use('/api/v1/reports', analyticsRoutes);
 app.use('/api/v1/profile', userProfileRoutes)
 app.use('/api/v1/plans', PlanRoutes)
 app.use('/api/v1/ai', aiRoutes);
-
+app.use('/api/v1/analytics', analyticsRouter);
 app.use('/api/v1/payments', paymentRoutes);
 // 4. ERROR HANDLER
 const { globalErrorHandler } = require('./api/controllers/error.controller');

@@ -1,7 +1,10 @@
 const UserActivity = require('../../models/UserActivity.model');
 const Question = require('../../models/Question.model');
 const mongoose = require('mongoose');
-const { catchAsync } = require('../../utils/apiError'); // Assuming you have a wrapper, else use try-catch
+// const  catchAsync  = require('../../utils/apiError'); // Assuming you have a wrapper, else use try-catch
+// const catchAsync = require('../../utils/apiError'); 
+const { catchAsync } = require('../../utils/apiError'); // Destructured import
+const UserProfile = require('../../models/UserProfile.model');
 
 exports.getBoardTrend = async (req, res, next) => {
   try {
@@ -846,3 +849,45 @@ exports.getChapterAnalysis = async (req, res, next) => {
     next(error);
   }
 };
+
+
+
+exports.getDashboardPulse = catchAsync(async (req, res, next) => {
+  const UserProfile = require('../../models/UserProfile.model');
+  const userId = req.user._id;
+
+  const user = await UserProfile.findById(userId)
+    .select('ai_report topic_states gamification dashboard_insight profile.name');
+
+  if (!user) {
+    return res.status(404).json({ status: 'fail', message: 'User profile not found' });
+  }
+
+  // FORCE FALLBACKS: If the DB fields are empty, send "Initialization" data
+  const readiness = (user.ai_report && user.ai_report.predicted_percentile) ? user.ai_report : {
+    predicted_percentile: 0,
+    probability_score: 15, // Non-zero for the UI ring to show a sliver
+    reasoning: "Initialization phase: Complete more sessions to activate AI."
+  };
+
+  // SCANNER FALLBACK: If no topics are at risk, show recent topics to keep HUD active
+  let recoveryQueue = (user.topic_states || [])
+    .filter(t => t.memory_strength < 45)
+    .sort((a, b) => a.memory_strength - b.memory_strength)
+    .slice(0, 3);
+
+  if (recoveryQueue.length === 0 && user.topic_states?.length > 0) {
+    recoveryQueue = user.topic_states.slice(0, 3); // Show top 3 recent if none are "Critical"
+  }
+
+  res.status(200).json({
+    status: 'success',
+    data: {
+      userName: user.profile.name || "Student",
+      readiness: readiness,
+      stats: user.gamification || { streak: 0 },
+      aiPlan: user.dashboard_insight?.recommendation || { label: "Analyze Path", context: "Pick a subject below to start your diagnostic." },
+      recoveryQueue: recoveryQueue
+    }
+  });
+});
