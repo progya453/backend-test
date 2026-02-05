@@ -1,5 +1,9 @@
 const gameplayService = require('../../services/gameplay.service');
 const { AppError } = require('../../utils/apiError');
+const DailyPlans = require('../../services/planGenerator.service')
+
+
+
 // 1. GET SUBJECTS (Dashboard)
 exports.getSubjects = async (req, res, next) => {
   try {
@@ -169,6 +173,25 @@ exports.triggerStreakUpdate = async (req, res, next) => {
       }
     });
   } catch (err) {
+    next(err);
+  }
+};
+
+
+
+
+exports.getPlans = async (req, res, next) => {
+  
+  try {
+ 
+    const userId = req.user ? req.user.id : null; 
+    if (!userId) throw new AppError('User is not found', 401);
+    console.log("user is ", req.user)
+    const questions = await DailyPlans.generateDailyPlan(userId);
+    res.status(200).json({ status: 'success', data: questions });
+    console.log(questions)
+  } catch (err) {
+    console.log(err)
     next(err);
   }
 };

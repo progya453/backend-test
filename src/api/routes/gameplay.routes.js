@@ -29,5 +29,7 @@ router.get('/questions', gameplayController.getQuestions);
 
 router.post('/update-streak', gameplayController.triggerStreakUpdate)
 
+router.get('/daily-plans', gameplayController.getPlans)
+
 
 module.exports = router;
