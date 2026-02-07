@@ -516,7 +516,10 @@ async getStudentInsights(userId) {
     const chapterId = topic ? topic.chapter_id : null;
 
     // C. Log Activity (Fire & Forget)
+<<<<<<< HEAD
     
+=======
+>>>>>>> rahulpro2/main
     UserActivity.create({
       user_id: userId,
       question_id: questionId,

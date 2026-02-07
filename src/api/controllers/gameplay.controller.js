@@ -1,6 +1,8 @@
 const gameplayService = require('../../services/gameplay.service');
 const { AppError } = require('../../utils/apiError');
+
 const DailyPlans = require('../../services/planGenerator.service')
+
 
 
 
@@ -175,6 +177,7 @@ exports.triggerStreakUpdate = async (req, res, next) => {
   } catch (err) {
     next(err);
   }
+
 };
 
 
@@ -195,3 +198,4 @@ exports.getPlans = async (req, res, next) => {
     next(err);
   }
 };
+

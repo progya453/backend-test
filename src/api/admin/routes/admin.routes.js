@@ -24,13 +24,19 @@ router.post('/login', authController.login);
 // router.use(protect);         // Must have valid Token/Cookie
 // router.use(restrictToAdmin); // Must have role: 'admin'
 
+<<<<<<< HEAD
 
+=======
+>>>>>>> rahulpro2/main
 // 2. Stream Management
 router.route('/streams')
   .get(cmsController.getAllStreams)
   .post(cmsController.createStream);
 
+<<<<<<< HEAD
 
+=======
+>>>>>>> rahulpro2/main
 // 3. Subject Management
 router.route('/subjects')
   .post(upload.single('image'), cmsController.createSubject);

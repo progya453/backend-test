@@ -4,7 +4,9 @@ const UserProgressSchema = new mongoose.Schema({
   //  MUST BE STRING for user IDs like "ram"
   user_id: { type: String, ref: 'UserProfile', required: true, index: true },
   
+
   entity_id: { type: String, required: true, index: true, ref: 'Topic' }, 
+
   entity_type: { type: String, enum: ['subject', 'chapter', 'topic'], required: true },
   
   progress: {

@@ -3,6 +3,10 @@ const UserProfile = require('../models/UserProfile.model')
 const Feedback = require('../models/Feedback.model');
 
 
+<<<<<<< HEAD
+=======
+
+>>>>>>> rahulpro2/main
 class UserProfileService {
     
     async getUserInfo(userId) {
