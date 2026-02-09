@@ -96,20 +96,45 @@ exports.submitAnswer = async (req, res, next) => {
 
 
 // UPDATE: Fetch Questions (Switch to Topic ID)
+// exports.getQuestions = async (req, res, next) => {
+//   try {
+//     // We now expect topicId, not chapterId
+//     const { topicId } = req.query; 
+//     if (!topicId) throw new AppError('Topic ID is required', 400);
+
+//     const questions = await gameplayService.getQuestionsForTopic(topicId);
+//     res.status(200).json({ status: 'success', data: questions });
+//   } catch (err) {
+//     next(err);
+//   }
+// };
+
+
+
+// 🔥 UPDATED: GET QUESTIONS (Debug Version)
 exports.getQuestions = async (req, res, next) => {
   try {
-    // We now expect topicId, not chapterId
-    const { topicId } = req.query; 
+    const { topicId } = req.query;
+    
+    // 1. 👇 EXTRACT USER ID (Crucial Step)
+    // If req.user exists (logged in), get the ID. Otherwise null.
+    const userId = req.user ? req.user.id : null; 
+    
+    // 🔍 DEBUG LOG: Check your terminal for this!
+    console.log(`[Controller] 📡 Request received for Topic: ${topicId}`);
+    console.log(`[Controller] 👤 User Context: ${userId ? userId : "Guest (No ID)"}`);
+
     if (!topicId) throw new AppError('Topic ID is required', 400);
 
-    const questions = await gameplayService.getQuestionsForTopic(topicId);
+    // 2. 👇 PASS ID TO SERVICE
+    // This allows the Service to enable AI logic for logged-in users
+    const questions = await gameplayService.getQuestionsForTopic(topicId, userId);
+    
     res.status(200).json({ status: 'success', data: questions });
   } catch (err) {
     next(err);
   }
 };
-
-
 
 
 // ... existing code ...
