@@ -210,5 +210,8 @@ dist
 # SvelteKit build / generate output
 .svelte-kit
 
+dump.rdb
+*.exe
+
 # End of https://www.toptal.com/developers/gitignore/api/node
 >>>>>>> rahulpro2/main
