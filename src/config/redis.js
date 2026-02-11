@@ -39,6 +39,7 @@ const pubClient = new Redis(process.env.REDIS_URL, commonOptions);
 
 const subClient = new Redis(process.env.REDIS_URL, commonOptions);
 
+
 /**
  * Attach safe event handlers
  */

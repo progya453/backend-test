@@ -72,7 +72,7 @@ exports.register = async (req, res, next) => {
 
 // -------- LOGIN ----------
 exports.login = async (req, res, next) => {
-  console.log("Login attempt:", req.body);
+  
   try {
     const { email, password } = req.body;
 
