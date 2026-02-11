@@ -516,10 +516,6 @@ async getStudentInsights(userId) {
     const chapterId = topic ? topic.chapter_id : null;
 
     // C. Log Activity (Fire & Forget)
-<<<<<<< HEAD
-    
-=======
->>>>>>> rahulpro2/main
     UserActivity.create({
       user_id: userId,
       question_id: questionId,
@@ -635,6 +631,87 @@ async getStudentInsights(userId) {
         return { percentage: 0 };
     }
   }
+
+
+  /**
+   * 6. GET FORMULAS (AI Tutor Vault)
+   * Scans user activity to find formulas they have encountered.
+   * Calculates mastery based on topic progress.
+   */
+async getUserFormulas(userId) {
+
+  
+  console.log(`[Service] Fetching formulas for user: ${userId}`);
+
+  // A. Get IDs of questions the user has attempted
+  const userActivities = await UserActivity.find({ user_id: userId })
+    .sort({ timestamp: -1 })
+    .select('question_id');
+
+  if (!userActivities.length) return [];
+
+  // Extract unique IDs
+  const questionIds = [...new Set(userActivities.map(a => a.question_id.toString()))];
+
+  // B. Fetch Questions that actually have formulas
+  const questions = await Question.find({
+    _id: { $in: questionIds },
+    formulas_used: { $exists: true, $not: { $size: 0 } }
+  }).select('formulas_used subject topic');
+
+  // C. Fetch Topic Mastery (to badge the formulas)
+  let topicMasteryMap = {};
+  if (UserProgress) {
+    const progress = await UserProgress.find({ 
+      user_id: userId, 
+      entity_type: 'topic' 
+    }).populate('entity_id', 'name');
+
+    progress.forEach(p => {
+      if (p.entity_id && p.entity_id.name) {
+        const score = p.progress.percentage || 0;
+        let level = 'low';
+        if (score >= 80) level = 'high';
+        else if (score >= 50) level = 'medium';
+        topicMasteryMap[p.entity_id.name] = level;
+      }
+    });
+  }
+
+  // D. Aggregate & Deduplicate
+  const formulaMap = new Map();
+
+  questions.forEach(q => {
+    // Ensure the question has formula data
+    if (!q.formulas_used || !Array.isArray(q.formulas_used)) return;
+
+    q.formulas_used.forEach(formula => {
+      const uniqueKey = formula.name || formula.latex;
+
+      if (!formulaMap.has(uniqueKey)) {
+        // Determine mastery level
+        const topicName = q.topic ? q.topic.name : 'General';
+        const mastery = topicMasteryMap[topicName] || 'medium'; // Default if no progress found
+
+        formulaMap.set(uniqueKey, {
+          id: uniqueKey, 
+          title: formula.name || 'Unnamed Formula',
+          expression: formula.latex,
+          subject: q.subject ? q.subject.name : 'General',
+          topic: topicName,
+          lastUsedDate: new Date(), // Could be refined with activity timestamp
+          masteryLevel: mastery
+        });
+      }
+    });
+  });
+
+  return Array.from(formulaMap.values());
 }
+}
+
+
+
+
 
 module.exports = new GameplayService();

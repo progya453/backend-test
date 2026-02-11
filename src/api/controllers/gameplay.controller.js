@@ -19,6 +19,9 @@ exports.getSubjects = async (req, res, next) => {
   }
 };
 
+
+
+
 // 2. GET CHAPTERS (Path View)
 exports.getChapters = async (req, res, next) => {
   try {
@@ -199,3 +202,28 @@ exports.getPlans = async (req, res, next) => {
   }
 };
 
+
+
+// ... existing imports ...
+
+// 6. GET FORMULAS (AI Tutor)
+exports.getFormulas = async (req, res, next) => {
+  try {
+    const userId = req.user ? req.user.id : null;
+    
+    if (!userId) {
+      throw new AppError('User authentication required', 401);
+    }
+
+    // Call the service
+    const formulas = await gameplayService.getUserFormulas(userId);
+
+    res.status(200).json({ 
+      status: 'success', 
+      count: formulas.length,
+      data: formulas 
+    });
+  } catch (err) {
+    next(err);
+  }
+};

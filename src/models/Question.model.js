@@ -1,4 +1,3 @@
-
 const mongoose = require('mongoose');
 
 const QuestionSchema = new mongoose.Schema({
@@ -18,6 +17,18 @@ const QuestionSchema = new mongoose.Schema({
     enum: ["MCQ", "Numerical", "Fill_Blank"], 
     required: true 
   },
+  
+  // ---------------------------------------------------------
+  // ✅ NEW FIELD ADDED HERE
+  // ---------------------------------------------------------
+  formulas_used: [{
+    _id: false, // Prevents creating an ID for each formula sub-document
+    latex: { type: String, required: true }, // e.g., "a^2 + b^2 = c^2"
+    name: { type: String }, // e.g., "Pythagoras Theorem"
+    variables: [String] // Optional: ["a", "b", "c"] for variable mapping
+  }],
+  // ---------------------------------------------------------
+
   options: [{
     id: { type: String, required: true },
     text: { type: String, required: true },
@@ -81,5 +92,7 @@ const QuestionSchema = new mongoose.Schema({
 // Indexes
 QuestionSchema.index({ "subject.name": 1, "chapter.name": 1, "topic.name": 1 });
 QuestionSchema.index({ "subject.name": 1, difficulty: 1 });
+// Optional: Index the formula names if you plan to search questions by formula
+QuestionSchema.index({ "formulas_used.name": 1 }); 
 
 module.exports = mongoose.model('Question', QuestionSchema);
